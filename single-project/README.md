@@ -233,7 +233,7 @@ gcloud beta services vpc-peerings delete \
 </details>
 
 <details>
-<summary>99-6. Private Services Access の削除<summary>
+<summary>99-6. Private Services Access の削除</summary>
 
 ```
 gcloud beta compute addresses delete ${_common}-psa \
@@ -241,7 +241,7 @@ gcloud beta compute addresses delete ${_common}-psa \
   --project ${_gc_pj_id}
 ```
 
-<details>
+</details>
 
 
 <details>
@@ -267,7 +267,7 @@ gcloud beta compute networks delete ${_common}-network \
 </details>
 
 <details>
-<summary>99-8. Cloud Run 用の Service Account の削除</summary>
+<summary>99-9. Cloud Run 用の Service Account の削除</summary>
 
 ```
 gcloud beta iam service-accounts delete ${_common}-run-sa@${_gc_pj_id}.iam.gserviceaccount.com \
