@@ -1,4 +1,4 @@
-# Hands On phpRedisAdmin on Cloud Run to Memorystore for Redis
+# Hands On Cloud Run to Memorystore for Redis
 
 phpRedisAdmin を Cloud Run 上で動かし、 Memorystore for Redis に接続するハンズオン
 
