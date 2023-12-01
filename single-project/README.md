@@ -3,10 +3,11 @@
 
 ## 0. 準備
 
-環境変数的な何か
++ 環境変数をセットしておきます
 
 ```
 export _gc_pj_id='Your Google Cloud ID'
+
 export _common='singlerunredis'
 export _sub_network_range='10.146.0.0/20'
 export _region='asia-northeast1'
@@ -24,17 +25,13 @@ gcloud beta iam service-accounts create ${_common}-run-sa \
 ```
 
 + 上記で作成した Service Account に以下の Role を付与します
-  + **WIP**
-  + Role: Cloud SQL Client( roles/cloudsql.client )
-  + Cloud SQL | Connect from Cloud Run
+  + 今回は不要
 
 ```
-# gcloud beta projects add-iam-policy-binding ${_gc_pj_id} \
-#   --member="serviceAccount:${_common}-run-sa@${_gc_pj_id}.iam.gserviceaccount.com" \
-#   --role="roles/cloudsql.client"
+# 不要
 ```
 
-## 2. ネットワーク
+## 2. ネットワークの作成
 
 + VPC Network の作成
 
@@ -89,7 +86,6 @@ gcloud beta compute firewall-rules create ${_common}-allow-internal-all \
   --source-ranges ${_sub_network_range} \
   --priority=1000 \
   --project ${_gc_pj_id}
-
 ```
 
 ## 3. Memorystore for Redis
@@ -99,7 +95,6 @@ gcloud beta compute firewall-rules create ${_common}-allow-internal-all \
 ```
 export _instance_tier='basic'
 export _instance_num='1'
-export _instance_region='asia-northeast1'
 export _redis_ver='redis_7_0'
 
 # Private services access の場合
@@ -113,7 +108,7 @@ gcloud beta redis instances create ${_common}-redis \
   --tier ${_instance_tier} \
   --size ${_instance_num} \
   --redis-version ${_redis_ver} \
-  --region ${_instance_region} \
+  --region ${_region} \
   --connect-mode ${_connect_mode} \
   --network=projects/${_gc_pj_id}/global/networks/${_common}-network \
   --reserved-ip-range ${_common}-psa \
@@ -143,6 +138,8 @@ docker push ${_region}-docker.pkg.dev/${_gc_pj_id}/${_common}-ar/redis-commander
 
 ## 5. Cloud Run のサービスのデプロイ
 
++ Cloud Run のサービスのデプロイ
+
 ```
 gcloud beta run deploy ${_common}-run \
   --platform managed \
@@ -163,31 +160,122 @@ gcloud beta run deploy ${_common}-run \
   --quiet
 ```
 
++ Cloud Run のサービスの確認
+
+```
+gcloud beta run services describe ${_common}-run \
+  --region ${_region} \
+  --project ${_gc_pj_id} \
+  --format json
+```
+
 ## 6. Web ブラウザで確認する
 
-
+![](./_img/6-1.png)
 
 ## 99. クリーンアップ
 
-TBD
-
-## VM からのデバック
-
-```
-redis-cli -h 10.138.0.3 -p 6379 PING
----> OK
-```
-
+<details>
+<summary>99-1. Cloud Run のサービスの削除</summary>
 
 ```
-SET mykey "Hello\nWorld"
-GET mykey
-
---> OK
+gcloud beta run services delete ${_common}-run \
+  --region ${_region} \
+  --project ${_gc_pj_id}
 ```
 
-docker run --rm --name redis-commander -d -p 80:8081 \
-  --env REDIS_HOSTS=10.138.0.3 \
-  ghcr.io/joeferner/redis-commander:latest
+</details>
 
----> アプリは 8081 で動いている
+<details>
+<summary>99-2. Artifact Registry の削除</summary>
+
+```
+gcloud beta artifacts repositories delete ${_common}-ar \
+  --location ${_region} \
+  --project ${_gc_pj_id}
+```
+
+</details>
+
+<details>
+<summary>99-3. Memorystore for Redis のインスタンスの削除</summary>
+
+```
+gcloud beta redis instances delete ${_common}-redis \
+  --region ${_region} \
+  --project ${_gc_pj_id}
+```
+
+</details>
+
+<details>
+<summary>99-4. Firewall Rule の削除</summary>
+
+```
+### 内部通信は全部許可する
+gcloud beta compute firewall-rules delete ${_common}-allow-internal-all \
+  --project ${_gc_pj_id}
+```
+
+</details>
+
+
+<details>
+<summary>99-5. Private Connection の削除</summary>
+
+```
+gcloud beta services vpc-peerings delete \
+  --network ${_common}-network \
+  --service servicenetworking.googleapis.com \
+  --project ${_gc_pj_id}
+```
+
+</details>
+
+<details>
+<summary>99-6. Private Services Access の削除<summary>
+
+```
+gcloud beta compute addresses delete ${_common}-psa \
+  --global \
+  --project ${_gc_pj_id}
+```
+
+<details>
+
+
+<details>
+<summary>99-7. サブネットの削除</summary>
+
+```
+gcloud beta compute networks subnets delete ${_common}-subnets \
+  --region ${_region} \
+  --project ${_gc_pj_id}
+```
+
+</details>
+
+
+<details>
+<summary>99-8. VPC Network の削除</summary>
+
+```
+gcloud beta compute networks delete ${_common}-network \
+  --project ${_gc_pj_id}
+```
+
+</details>
+
+<details>
+<summary>99-8. Cloud Run 用の Service Account の削除</summary>
+
+```
+gcloud beta iam service-accounts delete ${_common}-run-sa@${_gc_pj_id}.iam.gserviceaccount.com \
+  --project ${_gc_pj_id}
+```
+
+</details>
+
+## 結び
+
+Have Fan!! :)
