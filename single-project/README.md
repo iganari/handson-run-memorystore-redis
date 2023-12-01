@@ -74,20 +74,6 @@ gcloud beta compute networks subnets create ${_common}-subnets \
   --project ${_gc_pj_id}
 ```
 
-+ Firewall Rule の作成
-
-```
-### 内部通信は全部許可する
-gcloud beta compute firewall-rules create ${_common}-allow-internal-all \
-  --network ${_common}-network \
-  --direction=INGRESS \
-  --action ALLOW \
-  --rules tcp:0-65535,udp:0-65535,icmp \
-  --source-ranges ${_sub_network_range} \
-  --priority=1000 \
-  --project ${_gc_pj_id}
-```
-
 ## 3. Memorystore for Redis
 
 + 環境変数を設定しておく
@@ -112,7 +98,18 @@ gcloud beta redis instances create ${_common}-redis \
   --connect-mode ${_connect_mode} \
   --network=projects/${_gc_pj_id}/global/networks/${_common}-network \
   --reserved-ip-range ${_common}-psa \
-  --project ${_gc_pj_id}
+  --project ${_gc_pj_id} \
+  --async
+```
+
++ Memorystore for Redis のインスタンスのエンドポイントを確認する
+  + Cloud Run デプロイ時に使います
+
+```
+gcloud beta redis instances describe ${_common}-redis \
+  --region ${_region} \
+  --project ${_gc_pj_id} \
+  --format json | jq -r .host
 ```
 
 ## 4. Artifact Registry のリポジトリ作成とコンテナイメージの格納
@@ -138,6 +135,15 @@ docker push ${_region}-docker.pkg.dev/${_gc_pj_id}/${_common}-ar/redis-commander
 
 ## 5. Cloud Run のサービスのデプロイ
 
++ Memorystore for Redis のインスタンスのエンドポイントを環境変数にいれる
+
+```
+export _redis_host=$(gcloud beta redis instances describe ${_common}-redis \
+  --region ${_region} \
+  --project ${_gc_pj_id} \
+  --format json | jq -r .host)
+```
+
 + Cloud Run のサービスのデプロイ
 
 ```
@@ -150,7 +156,7 @@ gcloud beta run deploy ${_common}-run \
   --memory 512Mi \
   --image ${_region}-docker.pkg.dev/${_gc_pj_id}/${_common}-ar/redis-commander:latest \
   --port 8081 \
-  --set-env-vars=REDIS_HOSTS=10.138.0.3, \
+  --set-env-vars=REDIS_HOSTS=${_redis_host}, \
   --ingress all \
   --allow-unauthenticated \
   --min-instances 1 \
@@ -203,25 +209,14 @@ gcloud beta artifacts repositories delete ${_common}-ar \
 ```
 gcloud beta redis instances delete ${_common}-redis \
   --region ${_region} \
-  --project ${_gc_pj_id}
+  --project ${_gc_pj_id} \
+  --async
 ```
 
 </details>
 
 <details>
-<summary>99-4. Firewall Rule の削除</summary>
-
-```
-### 内部通信は全部許可する
-gcloud beta compute firewall-rules delete ${_common}-allow-internal-all \
-  --project ${_gc_pj_id}
-```
-
-</details>
-
-
-<details>
-<summary>99-5. Private Connection の削除</summary>
+<summary>99-4. Private Connection の削除</summary>
 
 ```
 gcloud beta services vpc-peerings delete \
@@ -233,7 +228,7 @@ gcloud beta services vpc-peerings delete \
 </details>
 
 <details>
-<summary>99-6. Private Services Access の削除</summary>
+<summary>99-5. Private Services Access の削除</summary>
 
 ```
 gcloud beta compute addresses delete ${_common}-psa \
@@ -243,9 +238,10 @@ gcloud beta compute addresses delete ${_common}-psa \
 
 </details>
 
+※ ここでしばらく待つ (1時間くらい)
 
 <details>
-<summary>99-7. サブネットの削除</summary>
+<summary>99-6. サブネットの削除</summary>
 
 ```
 gcloud beta compute networks subnets delete ${_common}-subnets \
@@ -255,9 +251,8 @@ gcloud beta compute networks subnets delete ${_common}-subnets \
 
 </details>
 
-
 <details>
-<summary>99-8. VPC Network の削除</summary>
+<summary>99-7. VPC Network の削除</summary>
 
 ```
 gcloud beta compute networks delete ${_common}-network \
@@ -267,7 +262,7 @@ gcloud beta compute networks delete ${_common}-network \
 </details>
 
 <details>
-<summary>99-9. Cloud Run 用の Service Account の削除</summary>
+<summary>99-8. Cloud Run 用の Service Account の削除</summary>
 
 ```
 gcloud beta iam service-accounts delete ${_common}-run-sa@${_gc_pj_id}.iam.gserviceaccount.com \
