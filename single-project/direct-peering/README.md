@@ -2,7 +2,7 @@
 
 ## 概要
 
-絵
+![](./_img/dp-overview.png)
 
 ## 0. 準備
 
