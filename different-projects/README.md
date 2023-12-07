@@ -7,7 +7,7 @@ https://cloud.google.com/run/docs/configuring/shared-vpc-direct-vpc?hl=ja
 
 ## 概要
 
-絵
+![](./_img/diffproject-overview.png)
 
 ## 0. 準備
 
