@@ -47,7 +47,7 @@ gcloud beta compute networks create ${_common}-network \
 ```
 
 + サブネットの作成
-  + Direct VPC egress 用
+  + Cloud Run の Direct VPC egress 用
 
 ```
 gcloud beta compute networks subnets create ${_common}-subnets \
@@ -173,11 +173,11 @@ gcloud beta run services describe ${_common}-run \
 
 + Top ページ
 
-![](./_img/6-1.png)
+![](./_img/dp-6-1.png)
 
 + Memorystore for Redis の接続ページ
 
-![](./_img/6-2.png)
+![](./_img/dp-6-2.png)
 
 ## 99. クリーンアップ
 

@@ -6,7 +6,7 @@
 
 ## 0. 準備
 
-+ 環境変数をセットしておきます
++ 環境変数をセット
 
 ```
 export _gc_pj_id='Your Google Cloud ID'
@@ -20,7 +20,7 @@ export _region='asia-northeast1'
 
 ## 1. IAM
 
-+ Cloud Run 用の Service Account を発行し、 Cloud SQL に接続できる最低限の Role を付与する
++ Cloud Run 用の Service Account を発行し、 Cloud SQL に接続できる最低限の Role を付与
 
 ```
 gcloud beta iam service-accounts create ${_common}-run-sa \
@@ -29,7 +29,7 @@ gcloud beta iam service-accounts create ${_common}-run-sa \
   --project ${_gc_pj_id}
 ```
 
-+ 上記で作成した Service Account に以下の Role を付与します
++ 上記で作成した Service Account に以下の Role を付与
   + 今回は不要
 
 ```
@@ -68,7 +68,7 @@ gcloud beta services vpc-peerings connect \
 ```
 
 + サブネットの作成
-  + Direct VPC egress 用
+  + Cloud Run の Direct VPC egress 用
 
 ```
 gcloud beta compute networks subnets create ${_common}-subnets \
@@ -81,7 +81,7 @@ gcloud beta compute networks subnets create ${_common}-subnets \
 
 ## 3. Memorystore for Redis
 
-+ 環境変数を設定しておく
++ 環境変数を設定
 
 ```
 export _instance_tier='basic'
@@ -107,14 +107,31 @@ gcloud beta redis instances create ${_common}-redis \
   --async
 ```
 
-+ Memorystore for Redis のインスタンスのエンドポイントを確認する
-  + Cloud Run デプロイ時に使います
++ Memorystore for Redis のインスタンスのエンドポイントを確認
+  + Cloud Run デプロイ時に使用
 
 ```
 gcloud beta redis instances describe ${_common}-redis \
   --region ${_region} \
   --project ${_gc_pj_id} \
   --format json | jq -r .host
+```
+
++ Memorystore for Redis のインスタンスのエンドポイントを環境変数に設定
+
+```
+export _redis_host=$(gcloud beta redis instances describe ${_common}-redis \
+  --region ${_region} \
+  --project ${_gc_pj_id} \
+  --format json | jq -r .host)
+
+echo ${_redis_host}
+```
+```
+### 例
+
+$ echo ${_redis_host}
+10.137.0.3
 ```
 
 ## 4. Artifact Registry のリポジトリ作成とコンテナイメージの格納
@@ -139,15 +156,6 @@ docker push ${_region}-docker.pkg.dev/${_gc_pj_id}/${_common}-ar/redis-commander
 ```
 
 ## 5. Cloud Run のサービスのデプロイ
-
-+ Memorystore for Redis のインスタンスのエンドポイントを環境変数にいれる
-
-```
-export _redis_host=$(gcloud beta redis instances describe ${_common}-redis \
-  --region ${_region} \
-  --project ${_gc_pj_id} \
-  --format json | jq -r .host)
-```
 
 + Cloud Run のサービスのデプロイ
 
@@ -183,7 +191,13 @@ gcloud beta run services describe ${_common}-run \
 
 ## 6. Web ブラウザで確認する
 
-![](./_img/6-1.png)
++ Top ページ
+
+![](./_img/psa-6-1.png)
+
++ Memorystore for Redis の接続ページ
+
+![](./_img/psa-6-2.png)
 
 ## 99. クリーンアップ
 
