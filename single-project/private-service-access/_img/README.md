@@ -1,4 +1,4 @@
-# 同じプロジェクト内で Cloud Run から Memorystore にアクセスする
+# 同じプロジェクト内で Cloud Run から Memorystore にアクセスする by using Private service access
 
 ## 概要
 

@@ -6,6 +6,15 @@ phpRedisAdmin を Cloud Run 上で動かし、 Memorystore for Redis に接続�
 
 TBD
 
+
+### 1-1. Direct peering
+
+TBD
+
+### 1-2. Private service access
+
+TBD
+
 ## 2. [違うプロジェクトの Cloud Run から Memorystore にアクセスする](./different-projects/)
 
 TBD
