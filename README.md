@@ -1,6 +1,6 @@
 # Hands On Cloud Run to Memorystore for Redis
 
-Cloud Run 上から Memorystore for Redis に接続するハンズオンです
+Cloud Run から Memorystore for Redis に繋げるハンズオンです
 
 いくつかのパターンを用意しました :)
 
