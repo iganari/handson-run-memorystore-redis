@@ -1,6 +1,8 @@
 # Hands On Cloud Run to Memorystore for Redis
 
-phpRedisAdmin を Cloud Run 上で動かし、 Memorystore for Redis に接続するハンズオン
+Cloud Run 上から Memorystore for Redis に接続するハンズオンです
+
+いくつかのパターンを用意しました :)
 
 ## 1. [同じプロジェクト内で Cloud Run から Memorystore にアクセスする](./single-project/)
 
