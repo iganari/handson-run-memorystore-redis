@@ -1,4 +1,4 @@
-# 同じプロジェクト内で Cloud Run から Memorystore にアクセスする by using Private Service Access
+# 同じプロジェクト内で Cloud Run から Memorystore にアクセスする by using Private service access
 
 ## 概要
 
@@ -11,7 +11,7 @@
 ```
 export _gc_pj_id='Your Google Cloud ID'
 
-### Cloud Run to Memorystore for Redis with Private Service Access in Single Project
+### Cloud Run to Memorystore for Redis with Private service access in Single Project
 export _common='runredispsa'
 
 export _sub_network_range='10.146.0.0/20'
@@ -46,7 +46,7 @@ gcloud beta compute networks create ${_common}-network \
   --project ${_gc_pj_id}
 ```
 
-+ Private Services Access の設定
++ Private service access の設定
 
 ```
 gcloud beta compute addresses create ${_common}-psa \
