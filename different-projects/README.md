@@ -1,74 +1,64 @@
 # 違うプロジェクトの Cloud Run から Memorystore にアクセスする
 
-## メモ
-
-これが必要
-https://cloud.google.com/run/docs/configuring/shared-vpc-direct-vpc?hl=ja
-
 ## 概要
+
+以下を構築していきます
+
+[公式ドキュメント | Direct VPC egress with a Shared VPC network](https://cloud.google.com/run/docs/configuring/shared-vpc-direct-vpc?hl=en)
 
 ![](./_img/diffproject-overview.png)
 
 ## 0. 準備
 
-+ 環境変数をセットしておきます
++ 環境変数をセット
 
 ```
 export _gc_pj_id_host='hogehoge-host'
 export _gc_pj_id_service='hogehoge-service'
 
-
 ### Different Projects cloudRun memorystoreforRedis Shared VPC
-# export _common='dprrshared'
+export _common='dprrshared'
 
-export _common='mmmmmmm'
 export _region='asia-northeast1'
-
-### 実際には 01 しか使わないが用意しておく
 export _sub_network_range='10.146.0.0/20'
-# export _sub_network_range_02='10.174.0.0/20'
-# export _sub_network_range_03='10.178.0.0/20'
 ```
 
 + API の有効化
 
 ```
+### ホストプロジェクトにて
 gcloud beta services enable compute.googleapis.com           --project ${_gc_pj_id_01}
 gcloud beta services enable redis.googleapis.com             --project ${_gc_pj_id_01}
 gcloud beta services enable servicenetworking.googleapis.com --project ${_gc_pj_id_01}
 ```
 
 ```
+### サービスプロジェクトにて
 gcloud beta services enable compute.googleapis.com          --project ${_gc_pj_id_02}
 gcloud beta services enable artifactregistry.googleapis.com --project ${_gc_pj_id_02}
 ```
 
-
-
-https://cloud.google.com/vpc/docs/provisioning-shared-vpc
-
-## 必要な Role
-
-この作業者は組織レベルで以下の Role を持っている必要がある
-
-+ Compute Shared VPC Admin (compute.organizations.enableXpnHost)
-
-## 組織のID を取得する
-
-スクショ
-
++ 組織レベルで必要な Role
+  + [公式ドキュメント | Provision Shared VPC](https://cloud.google.com/vpc/docs/provisioning-shared-vpc?hl=en)
 
 ```
-export _gc_org_id='62602512451'
+この作業者は組織レベルで以下の Role を持っている必要があるので付与
+Compute Shared VPC Admin (compute.organizations.enableXpnHost)
 ```
 
++ Google Cloud 組織の ID を取得
 
+```
+export _gc_org_id='xxxyyyzzz'
+```
 
-## ホストでやること
+![](./_img/diffproject-00-01.png)
 
+## 1. ホストでやること
 
+![](./_img/diffproject-01-01.png)
 
-## 共有 VPC のホストプロジェクトとして有効化
+### 1-1. 共有 VPC のホストプロジェクトとして有効化
 
 + 共有 VPC のホストプロジェクトにする Google Cloud のプロジェクトに対して、共有 VPC を有効化
 
@@ -108,7 +98,7 @@ RESOURCE_ID                 RESOURCE_TYPE
 hogehoge-service            PROJECT
 ```
 
-## ネットワーク
+## 1-2. ネットワークの作成
 
 + VPC Network の作成
 
@@ -118,21 +108,8 @@ gcloud beta compute networks create ${_common}-network \
   --project ${_gc_pj_id_host}
 ```
 
-+ サブネットの作成
-
-```
-gcloud beta compute networks subnets create ${_common}-subnets \
-  --network ${_common}-network \
-  --region ${_region} \
-  --range ${_sub_network_range} \
-  --enable-private-ip-google-access \
-  --project ${_gc_pj_id_host}
-```
-
-
-### 1-2. ネットワークの作成
-
 + Private Services Access の設定
+  + Memorystore 用
 
 ```
 gcloud beta compute addresses create ${_common}-psa \
@@ -144,6 +121,7 @@ gcloud beta compute addresses create ${_common}-psa \
 ```
 
 + Private Connection の作成
+  + Memorystore 用
 
 ```
 gcloud beta services vpc-peerings connect \
@@ -153,9 +131,21 @@ gcloud beta services vpc-peerings connect \
   --project ${_gc_pj_id_host}
 ```
 
-### 1-3. Memorystore for Redis
++ サブネットの作成
+  + Cloud Run の Direct VPC egress 用
 
-+ 環境変数を設定しておく
+```
+gcloud beta compute networks subnets create ${_common}-subnets \
+  --network ${_common}-network \
+  --region ${_region} \
+  --range ${_sub_network_range} \
+  --enable-private-ip-google-access \
+  --project ${_gc_pj_id_host}
+```
+
+### 1-3. Memorystore for Redis の作成
+
++ 環境変数を設定
 
 ```
 export _instance_tier='basic'
@@ -183,8 +173,8 @@ gcloud beta redis instances create ${_common}-redis \
 
 ちょっと待ちます :coffee:
 
-+ Memorystore for Redis のインスタンスのエンドポイントを確認する
-  + Cloud Run デプロイ時に使います
++ Memorystore for Redis のインスタンスのエンドポイントを確認
+  + Cloud Run デプロイ時に使用
 
 ```
 gcloud beta redis instances describe ${_common}-redis \
@@ -193,7 +183,7 @@ gcloud beta redis instances describe ${_common}-redis \
   --format json | jq -r .host
 ```
 
-+ Memorystore for Redis のインスタンスのエンドポイントを環境変数に入れておく
++ Memorystore for Redis のインスタンスのエンドポイントを環境変数に設定
 
 ```
 export _redis_host=$(gcloud beta redis instances describe ${_common}-redis \
@@ -205,14 +195,20 @@ export _redis_port=$(gcloud beta redis instances describe ${_common}-redis \
   --project ${_gc_pj_id_host} \
   --format json | jq -r .port)
 
+
 ### 確認
 echo ${_redis_host}
 echo ${_redis_port}
 ```
+```
+### 例
 
+TBD
+```
 
 ## 2. サービスプロジェクトでの設定
 
+![](./_img/diffproject-02-01.png)
 
 ### 2-1. IAM
 

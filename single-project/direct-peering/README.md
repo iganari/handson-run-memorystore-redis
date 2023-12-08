@@ -58,7 +58,7 @@ gcloud beta compute networks subnets create ${_common}-subnets \
   --project ${_gc_pj_id}
 ```
 
-## 3. Memorystore for Redis
+## 3. Memorystore for Redis の作成
 
 + 環境変数を設定
 
@@ -87,6 +87,8 @@ gcloud beta redis instances create ${_common}-redis \
   --async
 ```
 
+ちょっと待ちます :coffee:
+
 + Memorystore for Redis のインスタンスのエンドポイントを確認
   + Cloud Run デプロイ時に使用
 
@@ -105,6 +107,8 @@ export _redis_host=$(gcloud beta redis instances describe ${_common}-redis \
   --project ${_gc_pj_id} \
   --format json | jq -r .host)
 
+
+### 確認
 echo ${_redis_host}
 ```
 ```
