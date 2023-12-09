@@ -118,6 +118,10 @@ $ echo ${_redis_host}
 10.0.0.3
 ```
 
++ Memorystore for Redis の接続ページ
+
+![](./_img/dp-6-2.png)
+
 ## 4. Artifact Registry のリポジトリ作成とコンテナイメージの格納
 
 + Artifact Registry のリポジトリを作成
@@ -173,15 +177,11 @@ gcloud beta run services describe ${_common}-run \
   --format json
 ```
 
-## 6. Web ブラウザで確認する
+## 6. Web ブラウザで確認
 
 + Top ページ
 
 ![](./_img/dp-6-1.png)
-
-+ Memorystore for Redis の接続ページ
-
-![](./_img/dp-6-2.png)
 
 ## 99. クリーンアップ
 

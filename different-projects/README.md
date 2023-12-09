@@ -54,7 +54,7 @@ export _gc_org_id='xxxyyyzzz'
 
 ![](./_img/diffproject-00-01.png)
 
-## 1. ホストでやること
+## 1. ホストプロジェクトでやること
 
 ![](./_img/diffproject-01-01.png)
 
@@ -197,14 +197,21 @@ export _redis_port=$(gcloud beta redis instances describe ${_common}-redis \
 
 
 ### 確認
-echo ${_redis_host}
-echo ${_redis_port}
+echo Redis IP Address: ${_redis_host}
+echo Redis IP Port: ${_redis_port}
 ```
 ```
 ### 例
 
-TBD
+$ echo Redis IP Address: ${_redis_host}
+echo Redis IP Port: ${_redis_port}
+Redis IP Address: 10.11.0.3
+Redis IP Port: 6379
 ```
+
++ Memorystore for Redis の接続ページ
+
+![](./_img/diffproject-01-02.png)
 
 ## 2. サービスプロジェクトでの設定
 
@@ -221,15 +228,6 @@ gcloud beta iam service-accounts create ${_common}-run-sa \
   --project ${_gc_pj_id_service}
 ```
 
-+ 上記で作成した Service Account に以下の Role を付与します
-  + https://cloud.google.com/run/docs/configuring/shared-vpc-direct-vpc?hl=en#set_up_iam_permissions
-  + ホストプロジェクトにて
-    + プロジェクトレベルの Compute Network Viewer (compute.networkViewer)
-    + サブネットレベルでの Compute Network User (compute.networkUser)
-  + Cloud Run Service Agent (roles/run.serviceAgent) をサービスプロジェクト内で付与する
-
-
-
 + サービスプロジェクトの Project Number を取得
 
 ```
@@ -237,25 +235,31 @@ export _gc_pj_num_service=`gcloud beta projects describe ${_gc_pj_id_service} --
 
 echo ${_gc_pj_num_service}
 ```
+```
+### 例 (適当です)
 
-+ サービスプロジェクトの Google Cloud Run Service Agent の Service Account に、ホストプロジェクト内で Role を付与する
-  + **service-${Project Number}@serverless-robot-prod.iam.gserviceaccount.com** の形をしている
+1070761883354
+```
+
++ サービスプロジェクトの Google Cloud Run Service Agent の Service Account に、ホストプロジェクト内の Role を付与
+  + **service-${Project Number}@serverless-robot-prod.iam.gserviceaccount.com** の形の Service Account
+  + 詳しくは公式ドキュメント [Set up IAM permissions](https://cloud.google.com/run/docs/configuring/shared-vpc-direct-vpc?hl=en#set_up_iam_permissions) を参照
 
 ```
-### compute.networkViewer on Project
+### compute.networkViewer in Host Project
 gcloud beta projects add-iam-policy-binding ${_gc_pj_id_host} \
   --member "serviceAccount:service-${_gc_pj_num_service}@serverless-robot-prod.iam.gserviceaccount.com" \
   --role "roles/compute.networkViewer"
 
-### compute.networkUser on Subnets
-gcloud beta compute networks subnets add-iam-policy-binding ${_common}-subnets-01 \
+### compute.networkUser on Subnets in Host Project
+gcloud beta compute networks subnets add-iam-policy-binding ${_common}-subnets \
   --region ${_region} \
   --member "serviceAccount:service-${_gc_pj_num_service}@serverless-robot-prod.iam.gserviceaccount.com" \
   --role "roles/compute.networkUser" \
   --project ${_gc_pj_id_host}
 ```
 
-+ サービスプロジェクト内の Cloud Run 用の Service Account が、同じプロジェクト内の Google Cloud Run Service Agent の Role を使用出来るようにする
++ サービスプロジェクト内の Cloud Run 用の Service Account が、同じプロジェクト内の Google Cloud Run Service Agent の Role を付与
   + Cloud Run Service Agent (roles/run.serviceAgent)
 
 ```
@@ -264,15 +268,11 @@ gcloud beta projects add-iam-policy-binding ${_gc_pj_id_service} \
   --role "roles/run.serviceAgent"
 ```
 
-
-
 ### 2-2. ネットワークの作成
 
 ここは特に無し
 
-
-
-### 2-4. Artifact Registry のリポジトリ作成とコンテナイメージの格納
+### 2-3. Artifact Registry のリポジトリ作成とコンテナイメージの格納
 
 + Artifact Registry のリポジトリを作成
 
@@ -296,8 +296,7 @@ docker push ${_region}-docker.pkg.dev/${_gc_pj_id_service}/${_common}-ar/redis-c
 ### 2-5. Cloud Run のサービスのデプロイ
 
 + Cloud Run のサービスのデプロイ
-  + ${_common}-subnets-01 を使います
-  https://cloud.google.com/run/docs/configuring/shared-vpc-direct-vpc?hl=ja#deploy-service
+  + [Deploy a service](https://cloud.google.com/run/docs/configuring/shared-vpc-direct-vpc?hl=en#deploy-service)
 
 ```
 gcloud beta run deploy ${_common}-run \
@@ -329,9 +328,11 @@ gcloud beta run services describe ${_common}-run \
   --format json
 ```
 
-## 6. Web ブラウザで確認する
+## 6. Web ブラウザで確認
 
-![](./_img/6-1.png)
++ Top ページ
+
+![](./_img/diffproject-02-02.png)
 
 ## 99. クリーンアップ
 
@@ -369,7 +370,6 @@ gcloud beta redis instances delete ${_common}-redis \
 
 </details>
 
-
 <details>
 <summary>99-4. Service Account から Role を剥奪</summary>
 
@@ -381,13 +381,12 @@ gcloud beta projects remove-iam-policy-binding ${_gc_pj_id_service} \
 
 </details>
 
-
 <details>
 <summary>99-4. Google Cloud Run Service Agent の Service Account から Role を剥奪</summary>
 
 ```
 ### compute.networkUser on Subnets
-gcloud beta compute networks subnets remove-iam-policy-binding ${_common}-subnets-01 \
+gcloud beta compute networks subnets remove-iam-policy-binding ${_common}-subnets \
   --region ${_region} \
   --member "serviceAccount:service-${_gc_pj_num_service}@serverless-robot-prod.iam.gserviceaccount.com" \
   --role "roles/compute.networkUser" \
@@ -401,7 +400,6 @@ gcloud beta projects remove-iam-policy-binding ${_gc_pj_id_host} \
 
 </details>
 
-
 <details>
 <summary>99-4. Cloud Run 用の Service Account を削除</summary>
 
@@ -412,16 +410,7 @@ gcloud beta iam service-accounts delete ${_common}-run-sa@${_gc_pj_id_service}.i
 
 </details>
 
-
-
-
-
-
-
-
-
 ※ ここでしばらく待つ (15 分くらい)
-
 
 <details>
 <summary>99-4. Private Connection の削除</summary>
@@ -446,37 +435,20 @@ gcloud beta compute addresses delete ${_common}-psa \
 
 </details>
 
-
-
-
-
-
-
-
-
 ※ ここでしばらく待つ (1~2 時間くらい)
 
-
-
 <details>
-<summary>99-4. 共有 VPC のホストプロジェクトに接続しているサービスプロジェクトを解除</summary>
+<summary>99-6. 共有 VPC のホストプロジェクトに接続しているサービスプロジェクトを解除</summary>
 
 ```
 gcloud beta compute shared-vpc associated-projects remove ${_gc_pj_id_service} \
   --host-project ${_gc_pj_id_host}
 ```
 
-
 </details>
 
-
-
-
-
-
-
 <details>
-<summary>99-6. サブネットの削除</summary>
+<summary>99-7. サブネットの削除</summary>
 
 ```
 gcloud beta compute networks subnets delete ${_common}-subnets \
@@ -487,21 +459,23 @@ gcloud beta compute networks subnets delete ${_common}-subnets \
 </details>
 
 <details>
-<summary>99-7. VPC Network の削除</summary>
+<summary>99-8. VPC Network の削除</summary>
 
 ```
 gcloud beta compute networks delete ${_common}-network \
-  --project ${_gc_pj_id}
+  --project ${_gc_pj_id_host}
 ```
 
 </details>
 
 <details>
-<summary>99-8. Cloud Run 用の Service Account の削除</summary>
+<summary>99-9. Cloud Run 用の Service Account の削除</summary>
+
++ WIP なぜかエラーになるので調査する
 
 ```
-gcloud beta iam service-accounts delete ${_common}-run-sa@${_gc_pj_id}.iam.gserviceaccount.com \
-  --project ${_gc_pj_id}
+gcloud beta iam service-accounts delete ${_common}-run-sa@${_gc_pj_id_service}.iam.gserviceaccount.com \
+  --project ${_gc_pj_id_service}
 ```
 
 </details>
