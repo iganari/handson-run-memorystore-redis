@@ -268,6 +268,8 @@ gcloud beta projects add-iam-policy-binding ${_gc_pj_id_service} \
   --role "roles/run.serviceAgent"
 ```
 
+![](./_img/diffproject-02-02.png)
+
 ### 2-2. ネットワークの作成
 
 ここは特に無し
@@ -328,11 +330,11 @@ gcloud beta run services describe ${_common}-run \
   --format json
 ```
 
-## 6. Web ブラウザで確認
+## 3. Web ブラウザで確認
 
 + Top ページ
 
-![](./_img/diffproject-02-02.png)
+![](./_img/diffproject-03-01.png)
 
 ## 99. クリーンアップ
 
