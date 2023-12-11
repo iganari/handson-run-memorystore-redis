@@ -10,11 +10,11 @@ Memorystore for Redis の接続方法は、使用シナリオによって選ぶ�
 
 [公式ドキュメント| Memorystore for Redis/Networking/Choosing a connection mode](https://cloud.google.com/memorystore/docs/redis/networking#choosing_a_connection_mode)
 
-### 1-1. Direct peering
+### 1-1. [Direct peering](./single-project/direct-peering/)
 
 ![](./single-project/direct-peering/_img/dp-overview.png)
 
-### 1-2. Private service access
+### 1-2. [Private service access](./single-project/private-service-access/)
 
 ![](./single-project/private-service-access/_img/psa-overview.png)
 
