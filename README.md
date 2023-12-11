@@ -21,3 +21,12 @@ Memorystore for Redis の接続方法は、使用シナリオによって選ぶ�
 ## 2. [違うプロジェクトの Cloud Run から Memorystore にアクセスする](./different-projects/)
 
 ![](./different-projects/_img/diffproject-overview.png)
+
+## 注意点
+
+1. ハンズオン内の情報は作成当時 (2023/12) のものとなります
+1. [Direct VPC](https://cloud.google.com/run/docs/configuring/vpc-direct-vpc) egress は 2023/12 の時点では Preview の機能です
+
+## 最後に
+
+Have Fan!! :)
