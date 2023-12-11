@@ -47,6 +47,7 @@ gcloud beta compute networks create ${_common}-network \
 ```
 
 + Private service access の設定
+  + Memorystore 用
 
 ```
 gcloud beta compute addresses create ${_common}-psa \
@@ -58,6 +59,7 @@ gcloud beta compute addresses create ${_common}-psa \
 ```
 
 + Private Connection の作成
+  + Memorystore 用
 
 ```
 gcloud beta services vpc-peerings connect \
@@ -79,7 +81,7 @@ gcloud beta compute networks subnets create ${_common}-subnets \
   --project ${_gc_pj_id}
 ```
 
-## 3. Memorystore for Redis
+## 3. Memorystore for Redis の作成
 
 + 環境変数を設定
 
@@ -107,6 +109,8 @@ gcloud beta redis instances create ${_common}-redis \
   --async
 ```
 
+ちょっと待ちます :coffee:
+
 + Memorystore for Redis のインスタンスのエンドポイントを確認
   + Cloud Run デプロイ時に使用
 
@@ -125,6 +129,8 @@ export _redis_host=$(gcloud beta redis instances describe ${_common}-redis \
   --project ${_gc_pj_id} \
   --format json | jq -r .host)
 
+
+### 確認
 echo ${_redis_host}
 ```
 ```
@@ -133,6 +139,11 @@ echo ${_redis_host}
 $ echo ${_redis_host}
 10.137.0.3
 ```
+
++ Memorystore for Redis の接続ページ
+
+![](./_img/psa-6-2.png)
+
 
 ## 4. Artifact Registry のリポジトリ作成とコンテナイメージの格納
 
@@ -189,15 +200,11 @@ gcloud beta run services describe ${_common}-run \
   --format json
 ```
 
-## 6. Web ブラウザで確認する
+## 6. Web ブラウザで確認
 
 + Top ページ
 
 ![](./_img/psa-6-1.png)
-
-+ Memorystore for Redis の接続ページ
-
-![](./_img/psa-6-2.png)
 
 ## 99. クリーンアップ
 
