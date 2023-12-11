@@ -268,6 +268,8 @@ gcloud beta projects add-iam-policy-binding ${_gc_pj_id_service} \
   --role "roles/run.serviceAgent"
 ```
 
++ Role の付与イメージ
+
 ![](./_img/diffproject-02-02.png)
 
 ### 2-2. ネットワークの作成
